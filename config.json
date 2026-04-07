@@ -1,8 +1,7 @@
 {
     "editor": {
-        "is_splash": true,
-        "is_record_to_log": false,
-        "font_size": 12,
+        "is_splash": false,
+        "is_record_to_log": true,
         "language": "python",
         "is_complete_while_typing": true
     },
@@ -34,10 +33,13 @@
     "run_env": {
         "timeout": 30
     },
-    "aliases": {},
+    "aliases": {
+        "j": "api.jump"
+    },
     "shortcuts": {
         "c-x": "api.delete()",
         "c-r": "api.run_code()",
-        "c-q": "api.quit()"
+        "c-q": "api.quit()",
+        "c-l": "api.console()"
     }
 }

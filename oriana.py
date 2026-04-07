@@ -5,6 +5,7 @@ import sys
 import datetime
 import tempfile
 from pathlib import Path
+import re
 
 import jedi
 import pyperclip
@@ -140,6 +141,25 @@ class EditorAPI:
         buffer.redo()
         self.app.log("Redo")
 
+    def clear(self):
+        """エディタの内容をすべてクリアする"""
+        self.app.editor.text = ""
+        self.app.log("Editor cleared.")
+
+    def jump(self, line_num=1):
+        """指定した行にカーソルを移動する"""
+        buffer = self.app.editor.buffer
+        line_num = int(line_num)
+        if line_num < 1:
+            self.app.log("Error: Line number must be greater than 0.")
+            return
+        lines = self.app.editor.text.split('\n')
+        if line_num > len(lines):
+            self.app.log(f"Error: Line number {line_num} exceeds total lines {len(lines)}.")
+            return
+        target_position = sum(len(l) + 1 for l in lines[:line_num - 1])
+        buffer.cursor_position = target_position
+
     def set_editor_config(self, item, value):
         """エディタの設定を動的に変更する"""
         setattr(self.app.editor, item, value)
@@ -181,15 +201,17 @@ class EditorAPI:
             json.dump(self.app.config, f, indent=4)
         self.app.log(f"Keybind set: {key_combo} : {command}")
 
-    def shell(self, editor=False, command=None):
+    def shell(self, editor=False, command=None, clear_console=True, open_console=True):
         if editor:
             command = self.app.editor.text
         if command:
             try:
                 result = subprocess.run(command, shell=True, capture_output=True, text=True)
                 if not self.app.is_console_mode:
-                    self.app.console.text = ""
-                    self.console()
+                    if clear_console:
+                        self.app.console.text = ""
+                    if open_console:
+                        self.console()
                 self.app.console.text += f"\n$ {command}\n{result.stdout}"
                 self.app.log("Shell command executed")
             except Exception as e:
@@ -227,14 +249,21 @@ class EditorAPI:
             get_app().layout.focus(self.app.editor)
             self.app.log("Editor Mode")
 
-    def run_code(self):
+    def clear_console(self):
+        """コンソールの内容をクリアする"""
+        self.app.console.text = ""
+        self.app.log("Console cleared.")
+
+    def run_code(self, clear_console=True, open_console=True):
         """
         現在エディタにあるコードを一時ファイルとして保存し、
         実行結果をコンソール出力に表示する。
         """
         if not self.app.is_console_mode:
-            self.app.console.text = ""
-            self.console()
+            if clear_console:
+                self.app.console.text = ""
+            if open_console:
+                self.console()
         code = self.app.editor.text
         self.app.console.text += f"\n--- Running Code ---\n"
         
@@ -486,7 +515,7 @@ class PortableEditor:
             style=Style.from_dict(self.config.get("theme", {}))
         )
 
-        if self.config.get("editor, {}").get("is_splash", True):
+        if self.config.get("editor", {}).get("is_splash", True):
             with open(os.path.join(BASE_DIR, "splash.txt"), 'r', encoding='utf-8') as f:
                 self.editor.text = f.read()
             self.config["editor"]["is_splash"] = False
@@ -518,23 +547,21 @@ class PortableEditor:
                 self.api.focus_cmd()
             else:
                 self.api.focus_edit()
-            
 
     def handle_command(self, buffer):
         raw = buffer.text.strip()
         if not raw: return
 
-        # エイリアス解決
         exec_code = raw
         if "aliases" in self.config:
-            for alias in self.config["aliases"]:
-                if alias in raw:
-                    exec_code = exec_code.replace(alias, self.config["aliases"][alias])
+            for alias, replacement in self.config["aliases"].items():
+                pattern = r'\b' + re.escape(alias) + r'\b'
+                exec_code = re.sub(pattern, replacement, exec_code)
         try:
             exec(exec_code, {"api": self.api, "git": self.ogit, "app": self})
         except Exception as e:
             self.log(f"Error: {e}")
-        
+
         self.api.focus_edit()
         buffer.reset()
 
