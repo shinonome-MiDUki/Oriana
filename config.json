@@ -1,5 +1,6 @@
 {
     "editor": {
+        "is_splash": true,
         "is_record_to_log": false,
         "font_size": 12,
         "language": "python",

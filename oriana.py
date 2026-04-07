@@ -486,6 +486,13 @@ class PortableEditor:
             style=Style.from_dict(self.config.get("theme", {}))
         )
 
+        if self.config.get("editor, {}").get("is_splash", True):
+            with open(os.path.join(BASE_DIR, "splash.txt"), 'r', encoding='utf-8') as f:
+                self.editor.text = f.read()
+            self.config["editor"]["is_splash"] = False
+            with open(os.path.join(BASE_DIR, "config.json"), 'w') as f:
+                json.dump(self.config, f, indent=4)
+
     def load_config(self):
         path = os.path.join(BASE_DIR, "config.json")
         if os.path.exists(path):
