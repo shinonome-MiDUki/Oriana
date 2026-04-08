@@ -70,10 +70,10 @@ class EditorCore:
             accept_handler=self.handle_command
             )
 
-        self.editor = EditorAPI(self, get_app=get_app())
-        self.config = ConfigAPI(self, base_dir=GB.BASE_DIR)
-        self.ogit = GitAPI(self)
-        self.terminal = TerminalAPI(self, get_app=get_app())
+        self.editor_api = EditorAPI(self, get_app=get_app())
+        self.config_api = ConfigAPI(self)
+        self.ogit_api = GitAPI(self)
+        self.terminal_api = TerminalAPI(self, get_app=get_app())
         
         # レイアウト構築
         is_console = Condition(lambda: self.is_console_mode)
@@ -153,16 +153,23 @@ class EditorCore:
         if not raw: return
 
         exec_code = raw
+        api_set = {
+            "ope": self.editor_api,
+            "config": self.config_api,
+            "git": self.ogit_api,
+            "shr": self.terminal_api,
+            "app": self
+        }
         if "aliases" in self.config:
             for alias, replacement in self.config["aliases"].items():
                 pattern = r'\b' + re.escape(alias) + r'\b'
                 exec_code = re.sub(pattern, replacement, exec_code)
         try:
-            exec(exec_code, {"api": self.api, "git": self.ogit, "app": self})
+            exec(exec_code, {"ope": self.operation, "git": self.ogit, "app": self})
         except Exception as e:
             self.log(f"Error: {e}")
 
-        self.api.focus_edit()
+        self.operation.focus_edit()
         buffer.reset()
 
     def log(self, msg):
