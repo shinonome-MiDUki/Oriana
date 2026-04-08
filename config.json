@@ -34,12 +34,15 @@
         "timeout": 30
     },
     "aliases": {
-        "j": "api.jump"
+        "j": "api.jump",
+        "as": "api.stash()",
+        "ars": "api.stash(revert=True)"
     },
     "shortcuts": {
         "c-x": "api.delete()",
         "c-r": "api.run_code()",
         "c-q": "api.quit()",
-        "c-l": "api.console()"
+        "c-l": "api.console()",
+        "c-g": "api.undo()"
     }
 }
