@@ -1,3 +1,6 @@
+import dataclasses
+
+@dataclasses.dataclass
 class GlabalVar:
     BASE_DIR = None
     BIN_DIR = None

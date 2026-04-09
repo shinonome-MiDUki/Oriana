@@ -28,21 +28,20 @@ class EditorAPI:
         if os.path.exists(path):
             with open(path, 'r', encoding='utf-8') as f:
                 self.app.editor.text = f.read()
-            self.app.current_file = path
+            GB.EDITING_PATH = path
             self.app.log(f"Opened: {path}")
         else:
             self.app.log(f"New file: {path}")
-            self.app.current_file = path
-        GB.EDITING_PATH = path
+            GB.EDITING_PATH = path
 
     def save(self, path=None):
         """現在のファイルを保存"""
         if path:
-            self.app.current_file = path
-        if self.app.current_file:
-            with open(self.app.current_file, 'w', encoding='utf-8') as f:
+            GB.EDITING_PATH = path
+        if GB.EDITING_PATH:
+            with open(GB.EDITING_PATH, 'w', encoding='utf-8') as f:
                 f.write(self.app.editor.text)
-            self.app.log(f"Saved: {self.app.current_file}")
+            self.app.log(f"Saved: {GB.EDITING_PATH}")
         else:
             self.app.log("No file specified to save.")
 
@@ -52,7 +51,13 @@ class EditorAPI:
     def focus_edit(self):
         get_app().layout.focus(self.app.editor)
 
-    def quit(self):
+    def quit(self, discard=False):
+        if not discard:
+            if GB.EDITING_PATH:
+                self.save()
+            else:
+                self.app.log("Please save file before quitting.")
+                return
         get_app().exit()
 
     def copy(self, line_num=None):
@@ -140,6 +145,7 @@ class EditorAPI:
         if revert:
             if GB.CACHE_EDITOR is not None:
                 self.app.editor.text = GB.CACHE_EDITOR
+                GB.CACHE_EDITOR = None
                 GB.EDITING_PATH = GB.STASHED_PATH
                 GB.STASHED_PATH = None
                 self.app.log("Editor content restored from stash.")

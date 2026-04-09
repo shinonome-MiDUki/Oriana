@@ -27,7 +27,6 @@ from api.git_api import GitAPI
 
 class EditorCore:
     def __init__(self, open_path=None):
-        self.current_file = None
         self.config = self.load_config()
         self.is_console_mode = False
 
