@@ -1,6 +1,6 @@
 {
     "editor": {
-        "is_splash": false,
+        "is_splash": true,
         "is_record_to_log": true,
         "language": "python",
         "is_complete_while_typing": true
@@ -33,10 +33,13 @@
     "run_env": {
         "timeout": 30
     },
-    "aliases": {
-
-    },
     "shortcuts": {
-
+        "c-z": "ope.undo()",
+        "c-s": "ope.save()"
+    },
+    "aliases": {
+        "qt": "ope.quit()",
+        "st": "ope.stash()",
+        "srt": "ope.stash(revert=True)"
     }
 }

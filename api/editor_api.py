@@ -51,8 +51,8 @@ class EditorAPI:
     def focus_edit(self):
         get_app().layout.focus(self.app.editor)
 
-    def quit(self, discard=False):
-        if not discard:
+    def quit(self, force=False):
+        if not force:
             if GB.EDITING_PATH:
                 self.save()
             else:
