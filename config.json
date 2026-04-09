@@ -34,16 +34,9 @@
         "timeout": 30
     },
     "aliases": {
-        "j": "ope.jump",
-        "as": "ope.stash()",
-        "ars": "ope.stash(revert=True)"
+
     },
     "shortcuts": {
-        "c-x": "ope.delete()",
-        "c-r": "shr.run_code()",
-        "c-q": "ope.quit()",
-        "c-l": "shr.console()",
-        "c-g": "ope.undo()",
-        "c-s": "ope.save()"
+
     }
 }
