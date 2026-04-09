@@ -108,9 +108,10 @@ python oriana.py
 
 ---
 
-### `ope.quit()`
+### `ope.quit(force=False)`
 
 エディタを終了します。
+`force=False`（デフォルト）では、編集中の内容が保存されていない場合は保存を促すメッセージを表示して終了を中断します。`force=True` で強制終了します。
 
 ```
 :ope.quit()
