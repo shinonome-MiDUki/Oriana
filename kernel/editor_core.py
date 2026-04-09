@@ -7,7 +7,7 @@ import sys
 from prompt_toolkit import Application
 from prompt_toolkit.layout import Layout, HSplit, FloatContainer, Float, ConditionalContainer
 from prompt_toolkit.layout.menus import CompletionsMenu
-from prompt_toolkit.widgets import TextArea, Frame
+from prompt_toolkit.widgets import TextArea
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.application import get_app
 from prompt_toolkit.filters import Condition
@@ -26,7 +26,7 @@ from api.terminal_api import TerminalAPI
 from api.git_api import GitAPI
 
 class EditorCore:
-    def __init__(self):
+    def __init__(self, open_path=None):
         self.current_file = None
         self.config = self.load_config()
         self.is_console_mode = False
@@ -70,11 +70,21 @@ class EditorCore:
             accept_handler=self.handle_command
             )
 
-        self.editor_api = EditorAPI(self, get_app=get_app())
+        self.editor_api = EditorAPI(self)
         self.config_api = ConfigAPI(self)
         self.ogit_api = GitAPI(self)
-        self.terminal_api = TerminalAPI(self, get_app=get_app())
-        
+        self.terminal_api = TerminalAPI(self)
+        self.api_set = {
+            "ope": self.editor_api,
+            "cfg": self.config_api,
+            "git": self.ogit_api,
+            "term": self.terminal_api,
+            "app": self
+        }
+
+        if open_path:
+            self.editor_api.open(open_path)
+
         # レイアウト構築
         is_console = Condition(lambda: self.is_console_mode)
         is_editor = Condition(lambda: not self.is_console_mode)
@@ -136,7 +146,7 @@ class EditorCore:
     def setup_bindings(self):
         for key, cmd in self.config.get("shortcuts", {}).items():
             def _create_h(c):
-                return lambda event: exec(c, {"api": self.api, "app": self})
+                return lambda event: exec(c, self.api_set)
             try:
                 self.kb.add(key)(_create_h(cmd))
             except: pass
@@ -144,32 +154,25 @@ class EditorCore:
         @self.kb.add('c-o')
         def _(event): 
             if get_app().layout.has_focus(self.editor):
-                self.api.focus_cmd()
+                self.editor_api.focus_cmd()
             else:
-                self.api.focus_edit()
+                self.editor_api.focus_edit()
 
     def handle_command(self, buffer):
         raw = buffer.text.strip()
         if not raw: return
 
         exec_code = raw
-        api_set = {
-            "ope": self.editor_api,
-            "config": self.config_api,
-            "git": self.ogit_api,
-            "shr": self.terminal_api,
-            "app": self
-        }
         if "aliases" in self.config:
             for alias, replacement in self.config["aliases"].items():
                 pattern = r'\b' + re.escape(alias) + r'\b'
                 exec_code = re.sub(pattern, replacement, exec_code)
         try:
-            exec(exec_code, {"ope": self.operation, "git": self.ogit, "app": self})
+            exec(exec_code, self.api_set)
         except Exception as e:
             self.log(f"Error: {e}")
 
-        self.operation.focus_edit()
+        self.editor_api.focus_edit()
         buffer.reset()
 
     def log(self, msg):

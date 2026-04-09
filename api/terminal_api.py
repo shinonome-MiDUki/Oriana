@@ -4,10 +4,11 @@ import os
 import sys
 from pathlib import Path
 
+from prompt_toolkit.application import get_app
+
 class TerminalAPI:
-    def __init__(self, app_instance, get_app):
+    def __init__(self, app_instance):
         self.app = app_instance
-        self.get_app = get_app
 
     def shell(self, editor=False, command=None, clear_console=True, open_console=True):
         if editor:
@@ -31,10 +32,10 @@ class TerminalAPI:
         """エディタとコンソールの表示を切り替える (内容は保持される)"""
         self.app.is_console_mode = not self.app.is_console_mode
         if self.app.is_console_mode:
-            self.get_app.layout.focus(self.app.console)
+            get_app().layout.focus(self.app.console)
             self.app.log("Console Mode")
         else:
-            self.get_app.layout.focus(self.app.editor)
+            get_app().layout.focus(self.app.editor)
             self.app.log("Editor Mode")
 
     def clear_console(self):

@@ -2,15 +2,16 @@ import os
 import pyperclip
 import sys
 
+from prompt_toolkit.application import get_app
+
 proj_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if proj_root not in sys.path:
     sys.path.append(proj_root)
 from kernel.global_var import GlabalVar as GB
 
 class EditorAPI:
-    def __init__(self, app_instance, get_app):
+    def __init__(self, app_instance):
         self.app = app_instance
-        self.get_app = get_app
 
     def create(self, path):
         """新しいファイルを作成して開く"""
@@ -46,13 +47,13 @@ class EditorAPI:
             self.app.log("No file specified to save.")
 
     def focus_cmd(self):
-        self.get_app.layout.focus(self.app.cmd_line)
+        get_app().layout.focus(self.app.cmd_line)
 
     def focus_edit(self):
-        self.get_app.layout.focus(self.app.editor)
+        get_app().layout.focus(self.app.editor)
 
     def quit(self):
-        self.get_app.exit()
+        get_app().exit()
 
     def copy(self, line_num=None):
         """エディタの内容をクリップボードにコピー"""

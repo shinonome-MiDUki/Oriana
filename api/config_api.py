@@ -52,3 +52,8 @@ class ConfigAPI:
         with open(os.path.join(GB.BASE_DIR, "config.json"), 'w') as f:
             json.dump(self.app.config, f, indent=4)
         self.app.log(f"Keybind set: {key_combo} : {command}")
+
+    def open_config(self):
+        """設定ファイルをエディタで開く"""
+        config_path = os.path.join(GB.BASE_DIR, "config.json")
+        self.app.editor_api.open(config_path)
