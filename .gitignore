@@ -6,4 +6,4 @@
 **/env/
 **/build/
 **/dist/
-/config.json
+config.json
