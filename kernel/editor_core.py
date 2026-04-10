@@ -78,7 +78,7 @@ class EditorCore:
             "ope": self.editor_api,
             "cfg": self.config_api,
             "git": self.ogit_api,
-            "term": self.terminal_api,
+            "shr": self.terminal_api,
             "app": self
         }
 

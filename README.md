@@ -364,13 +364,13 @@ python oriana.py
 
 ---
 
-## TerminalAPI (`term`)
+## TerminalAPI (`shr`)
 
 シェルコマンドの実行・コンソールの制御・コードの実行を担うAPIです。
 
 ---
 
-### `term.shell(editor=False, command=None, clear_console=True, open_console=True)`
+### `shr.shell(editor=False, command=None, clear_console=True, open_console=True)`
 
 シェルコマンドを実行し、結果をコンソールに表示します。
 
@@ -382,34 +382,34 @@ python oriana.py
 | `open_console` | `True` | 実行後にコンソールを自動で開く |
 
 ```
-:term.shell(command="ls -la")
-:term.shell(command="make build", clear_console=False)
-:term.shell(editor=True)   # エディタの内容をシェルで実行
+:shr.shell(command="ls -la")
+:shr.shell(command="make build", clear_console=False)
+:shr.shell(editor=True)   # エディタの内容をシェルで実行
 ```
 
 ---
 
-### `term.console()`
+### `shr.console()`
 
 エディタとコンソールの表示をトグルします。どちらの内容も切り替え時に保持されます。
 
 ```
-:term.console()
+:shr.console()
 ```
 
 ---
 
-### `term.clear_console()`
+### `shr.clear()`
 
 コンソールの表示内容をクリアします。
 
 ```
-:term.clear_console()
+:shr.clear()
 ```
 
 ---
 
-### `term.run_code(clear_console=True, open_console=True)`
+### `shr.run_py(clear_console=True, open_console=True, interpreter=None, venv=None)`
 
 現在のエディタ内容を一時ファイル（`.py`）として保存し、Pythonインタプリタで実行します。結果・エラーはコンソールに表示されます。タイムアウトは30秒です。`config.json` の `run_env` セクションでインタプリタとvenvパスを指定できます。
 
@@ -417,19 +417,12 @@ python oriana.py
 |------|-----------|------|
 | `clear_console` | `True` | 実行前にコンソールをクリア |
 | `open_console` | `True` | 実行後にコンソールを自動で開く |
+| `interpreter` | `None` | 使用するPythonインタプリタのパス。`None` でデフォルトインタプリタ |
+| `venv` | `None` | 使用する仮想環境のパス。`None` でデフォルト環境 |
+
 
 ```
-:term.run_code()
-:term.run_code(clear_console=False, open_console=False)
-```
-
-**`config.json` での実行環境指定：**
-
-```json
-{
-  "run_env": {
-    "interpreter": "/usr/bin/python3",
-    "venv_path": ".venv"
-  }
-}
+:shr.run_py()
+:shr.run_py(clear_console=False, open_console=False)
+:shr.run_py(interpreter="/usr/bin/python3", venv=".venv")
 ```
