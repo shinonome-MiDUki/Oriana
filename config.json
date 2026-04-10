@@ -3,7 +3,8 @@
         "is_splash": true,
         "is_record_to_log": true,
         "language": "python",
-        "is_complete_while_typing": true
+        "is_complete_while_typing": true,
+        "dangerous_dirs": []
     },
     "theme": {
         "editor": "bg:#000000 #ffffff",
@@ -34,12 +35,9 @@
         "timeout": 30
     },
     "shortcuts": {
-        "c-z": "ope.undo()",
-        "c-s": "ope.save()"
+
     },
     "aliases": {
-        "qt": "ope.quit()",
-        "st": "ope.stash()",
-        "srt": "ope.stash(revert=True)"
+
     }
 }
