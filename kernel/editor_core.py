@@ -125,7 +125,7 @@ class EditorCore:
             style=Style.from_dict(self.config.get("theme", {}))
         )
 
-        if self.config.get("editor", {}).get("is_splash", True):
+        if self.config.get("editor", {}).get("is_splash", True) and open_path is None:
             with open(os.path.join(GB.BASE_DIR, "splash.txt"), 'r', encoding='utf-8') as f:
                 self.editor.text = f.read()
             self.config["editor"]["is_splash"] = False
