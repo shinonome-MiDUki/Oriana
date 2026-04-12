@@ -62,9 +62,11 @@ class EditorCore:
             style='class:status',
             read_only=True
             )
+        
         # UI: コマンドライン
+        cmd_prompt = self.config.get("editor", {}).get("cmd_prompt", "pycmd:>")
         self.cmd_line = TextArea(
-            prompt=":", 
+            prompt=cmd_prompt if isinstance(cmd_prompt, str) else "pycmd:>",
             multiline=False, 
             style='class:command',
             accept_handler=self.handle_command
