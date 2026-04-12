@@ -3,6 +3,7 @@ import json
 import datetime
 import re
 import sys
+from pathlib import Path
 
 from prompt_toolkit import Application
 from prompt_toolkit.layout import Layout, HSplit, FloatContainer, Float, ConditionalContainer
@@ -128,16 +129,16 @@ class EditorCore:
         )
 
         if self.config.get("editor", {}).get("is_splash", True) and open_path is None:
-            with open(os.path.join(GB.BASE_DIR, "splash.txt"), 'r', encoding='utf-8') as f:
+            with open(Path(GB.BASE_DIR) / "_data" / "splash.txt", 'r', encoding='utf-8') as f:
                 self.editor.text = f.read()
             self.config["editor"]["is_splash"] = False
-            with open(os.path.join(GB.BASE_DIR, "config.json"), 'w') as f:
+            with open(Path(GB.BASE_DIR) / "config.json", 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=4)
 
     def load_config(self):
-        path = os.path.join(GB.BASE_DIR, "config.json")
-        if os.path.exists(path):
-            with open(path, 'r') as f:
+        path = Path(GB.BASE_DIR) / "config.json"
+        if path.exists():
+            with open(path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         return {
             "editor" : {},
@@ -181,10 +182,11 @@ class EditorCore:
         self.status_bar.text = msg
         if "editor" in self.config:
             if self.config.get("is_record_to_log", False):
-                if not os.path.exists(os.path.join(GB.BASE_DIR, "editor.log")):
-                    with open(os.path.join(GB.BASE_DIR, "editor.log"), 'w', encoding='utf-8') as f:
+                log_path = Path(GB.BASE_DIR) / "editor.log"
+                if not log_path.exists():
+                    with open(log_path, 'w', encoding='utf-8') as f:
                         f.write("")
-                with open(os.path.join(GB.BASE_DIR, "editor.log"), 'a', encoding='utf-8') as f:
+                with open(log_path, 'a', encoding='utf-8') as f:
                     f.write(datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + msg + "\n")
 
     def run(self):

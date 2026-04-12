@@ -9,7 +9,7 @@ GB.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GB.BIN_DIR = os.path.join(GB.BASE_DIR, "bin")
 os.environ["PATH"] = GB.BIN_DIR + os.pathsep + os.environ.get("PATH", "")
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
         editor = EditorCore(open_path=file_path)
@@ -17,3 +17,6 @@ if __name__ == "__main__":
         editor = EditorCore()
 
     editor.run()
+
+if __name__ == "__main__":
+    main()
