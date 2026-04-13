@@ -15,9 +15,7 @@ Oriana はすべての操作が Python 関数として定義された CLI エデ
 ## インストール
 
 ```bash
-git clone https://github.com/yourname/oriana.git
-cd oriana
-pip install -r requirements.txt
+pip install oriana==2026.1.1
 ```
 
 ### 依存ライブラリ
@@ -45,10 +43,14 @@ python oriana.py
 | `ope` | `EditorAPI` | エディタ本体の操作 |
 | `cfg` | `ConfigAPI` | 設定・テーマ・エイリアス管理 |
 | `git` | `GitAPI` | git操作 |
-| `term` | `TerminalAPI` | シェル・コンソール・コード実行 |
+| `shr` | `TerminalAPI` | シェル・コンソール・コード実行 |
+| `shelf` | `ShelfAPI` | シェルフ・バッファ管理 |
+| `plug` | `PluginAPI` | プラグイン・カスタムコマンド管理 |
 
 ---
+
 ## APIリファレンス
+
 ---
 
 ## EditorAPI (`ope`)
@@ -108,13 +110,19 @@ python oriana.py
 
 ---
 
-### `ope.quit(force=False)`
+### `ope.quit(force=False, clear_cache=True)`
 
-エディタを終了します。
-`force=False`（デフォルト）では、編集中の内容が保存されていない場合は保存を促すメッセージを表示して終了を中断します。`force=True` で強制終了します。
+エディタを終了します。`force=False`（デフォルト）では、編集中のファイルを自動保存してから終了します。ファイルが未指定の場合は終了を中断しログに通知します。`force=True` で強制終了します。`clear_cache=True`（デフォルト）では終了時にシェルフキャッシュをクリアします。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `force` | `False` | `True` で強制終了（未保存内容は破棄） |
+| `clear_cache` | `True` | `True` で終了時にシェルフキャッシュをクリア |
 
 ```
 :ope.quit()
+:ope.quit(force=True)
+:ope.quit(force=True, clear_cache=False)
 ```
 
 ---
@@ -283,6 +291,47 @@ python oriana.py
 
 ---
 
+### `cfg.open_config()`
+
+`config.json` をエディタで直接開きます。
+
+```
+:cfg.open_config()
+```
+
+---
+
+### `cfg.clear_log(clear_lines=100)`
+
+`editor.log` の末尾から指定行数を残して古いログを削除します。`clear_lines=0` で何もしません。`clear_lines=-1` でログファイルを完全に削除します。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `clear_lines` | `100` | 残す行数。`0` で何もしない、`-1` でファイルごと削除 |
+
+```
+:cfg.clear_log()        # 末尾100行を残して削除
+:cfg.clear_log(50)      # 末尾50行を残して削除
+:cfg.clear_log(-1)      # ログファイルを完全削除
+:cfg.clear_log(0)       # 何もしない
+```
+
+---
+
+### `cfg.reset_config(confirm=False)`
+
+`config.json` を削除します。次回起動時にデフォルト設定で再生成されます。誤操作防止のため `confirm=True` を明示的に渡す必要があります。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `confirm` | `False` | `True` を渡さないと実行されない |
+
+```
+:cfg.reset_config(confirm=True)
+```
+
+---
+
 ## GitAPI (`git`)
 
 開いているファイルが git リポジトリ内にあり、かつ git の追跡対象である場合のみ有効です。それ以外の場合は各メソッドがログにエラーを表示して処理を中断します。
@@ -366,7 +415,7 @@ python oriana.py
 
 ## TerminalAPI (`shr`)
 
-シェルコマンドの実行・コンソールの制御・コードの実行を担うAPIです。
+シェルコマンドの実行・コンソールの制御・コードの実行・パッケージ管理を担うAPIです。
 
 ---
 
@@ -411,7 +460,7 @@ python oriana.py
 
 ### `shr.run_py(clear_console=True, open_console=True, interpreter=None, venv=None)`
 
-現在のエディタ内容を一時ファイル（`.py`）として保存し、Pythonインタプリタで実行します。結果・エラーはコンソールに表示されます。タイムアウトは30秒です。`config.json` の `run_env` セクションでインタプリタとvenvパスを指定できます。
+現在のエディタ内容を一時ファイル（`.py`）として保存し、Pythonインタプリタで実行します。結果・エラーはコンソールに表示されます。タイムアウトは `config.json` の `"timeout"` で設定できます（デフォルト30秒）。`venv` を指定した場合はそのvenv内のインタプリタを直接使用します。
 
 | 引数 | デフォルト | 説明 |
 |------|-----------|------|
@@ -420,9 +469,190 @@ python oriana.py
 | `interpreter` | `None` | 使用するPythonインタプリタのパス。`None` でデフォルトインタプリタ |
 | `venv` | `None` | 使用する仮想環境のパス。`None` でデフォルト環境 |
 
-
 ```
 :shr.run_py()
 :shr.run_py(clear_console=False, open_console=False)
-:shr.run_py(interpreter="/usr/bin/python3", venv=".venv")
+:shr.run_py(venv=".venv")
+:shr.run_py(interpreter="/usr/bin/python3")
+```
+
+---
+
+### `shr.venv(dir, interpreter=None, remove=False)`
+
+仮想環境を作成または削除します。`remove=True` の場合、安全チェックを行ったうえで指定ディレクトリを削除します。`/`・`C:\` 等の危険なパスは削除できません。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `dir` | — | 仮想環境のパス |
+| `interpreter` | `None` | 使用するPythonインタプリタのパス。`None` でデフォルトインタプリタ |
+| `remove` | `False` | `True` で仮想環境を削除 |
+
+```
+:shr.venv(".venv")                          # 作成
+:shr.venv(".venv", interpreter="/usr/bin/python3.11")
+:shr.venv(".venv", remove=True)             # 削除
+```
+
+---
+
+### `shr.package(name, venv=None, force=False, version=None, install=True, upgrade=False, pip3=False)`
+
+pip を使ってパッケージを管理します。`venv` を指定するとそのvenv内の pip を使用します。結果はコンソールに表示されます。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `name` | — | パッケージ名 |
+| `venv` | `None` | 使用する仮想環境のパス |
+| `force` | `False` | `True` でvenvが存在しない場合に自動作成 |
+| `version` | `None` | インストールするバージョン（例: `"1.2.3"`） |
+| `install` | `True` | `False` でアンインストール |
+| `upgrade` | `False` | `True` で `--upgrade` オプションを付与 |
+| `pip3` | `False` | `True` で `pip3` を使用 |
+
+```
+:shr.package("requests")
+:shr.package("numpy", version="1.26.0")
+:shr.package("requests", venv=".venv")
+:shr.package("requests", install=False)     # アンインストール
+:shr.package("pip", upgrade=True)           # pip自体をアップグレード
+```
+
+---
+
+## ShelfAPI (`shelf`)
+
+シェルフはエディタのバッファを名前付きで退避・復元する仕組みです。複数のファイルを切り替えながら作業する際に使用します。シェルフの状態はディスク上にキャッシュされ、`ope.quit()` 実行時に自動でクリアされます。
+
+---
+
+### `shelf.shelf(name)`
+
+現在のエディタ内容を指定した名前でシェルフに退避します。退避後はエディタがクリアされ、`GB.EDITING_PATH` と `GB.WORKING_SHELF` がリセットされます。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `name` | — | シェルフの名前 |
+
+```
+:shelf.shelf("feature-work")
+```
+
+---
+
+### `shelf.switch_shelf(name, discard_current=False)`
+
+指定したシェルフに切り替えます。現在作業中のシェルフがある場合は自動で退避してから切り替えます。`discard_current=True` で現在の内容を退避せずに破棄して切り替えます。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `name` | — | 切り替え先シェルフの名前 |
+| `discard_current` | `False` | `True` で現在の内容を破棄して切り替え |
+
+```
+:shelf.switch_shelf("feature-work")
+:shelf.switch_shelf("hotfix", discard_current=True)
+```
+
+---
+
+### `shelf.unshelf(name, auto_save=True)`
+
+シェルフを解除します。`auto_save=True`（デフォルト）では、シェルフに紐付いたファイルパスに内容を自動保存してからキャッシュを削除します。ファイルパスが未設定の場合は保存できないためログに通知し処理を中断します。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `name` | — | 解除するシェルフの名前 |
+| `auto_save` | `True` | `True` で自動保存してからキャッシュを削除 |
+
+```
+:shelf.unshelf("feature-work")
+:shelf.unshelf("temp", auto_save=False)   # 保存せずに破棄
+```
+
+---
+
+### `shelf.clear_shelves()`
+
+全シェルフのキャッシュファイル（`.pkl`）を削除し、`shelf.json` を初期化します。`ope.quit()` 実行時に自動で呼ばれます。
+
+```
+:shelf.clear_shelves()
+```
+
+---
+
+## PluginAPI (`plug`)
+
+カスタムコマンド（CCMD）の登録・プラグインの管理を担うAPIです。
+
+---
+
+### `plug.ccmd_template()`
+
+カスタムコマンドのテンプレートコードをエディタに読み込みます。テンプレートを編集後、`plug.reg_ccmd()` で登録します。実行後は `GB.EDITING_PATH` がリセットされます。
+
+```
+:plug.ccmd_template()
+```
+
+---
+
+### `plug.reg_ccmd()`
+
+現在のエディタ内容をカスタムコマンドとして登録します。コードの1行目に `@useapi(api1, api2, ...)` 形式でデコレータを記述することで、使用するAPIを宣言できます。登録されたコマンドは `ccmd.py` に追記されます。
+
+```
+:plug.reg_ccmd()
+```
+
+CCMDの記述例：
+
+```python
+@useapi("ope", "shr")
+def my_command():
+    ope.save()
+    shr.run_py()
+```
+
+---
+
+### `plug.set_plugin(name)`
+
+現在のエディタ内容を指定した名前のプラグインファイルとして保存します。保存先は `PLUGIN_DIR/oriana_client/package/` です。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `name` | — | プラグインのファイル名（拡張子なし） |
+
+```
+:plug.set_plugin("my_plugin")
+```
+
+---
+
+### `plug.set_ext_plugin(ext)`
+
+外部のプラグインファイルを `PLUGIN_DIR/oriana_client/package/` にコピーして登録します。指定パスが存在しない場合はログにエラーを表示します。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `ext` | — | 登録する外部プラグインファイルのパス |
+
+```
+:plug.set_ext_plugin("/path/to/my_plugin.py")
+```
+
+---
+
+### `plug.set_pkg(ext)`
+
+外部のパッケージディレクトリを `PLUGIN_DIR/oriana_client/` にコピーし、`config.json` の `"plugin"."package"` リストに追加します。指定パスが存在しない場合はログにエラーを表示します。
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `ext` | — | 登録する外部パッケージディレクトリのパス |
+
+```
+:plug.set_pkg("/path/to/my_package")
 ```
