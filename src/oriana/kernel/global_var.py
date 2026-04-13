@@ -9,6 +9,7 @@ class GlabalVar:
     EDITING_PATH = None
     STASHED_PATH = None
     CACHE_EDITOR = None
+    WORKING_SHELF = None
 
 class GlobalConst:
     if sys.platform == "win32":

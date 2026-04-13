@@ -3,10 +3,7 @@ import sys
 
 from git import Repo, InvalidGitRepositoryError
 
-proj_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if proj_root not in sys.path:
-    sys.path.append(proj_root)
-from kernel.global_var import GlabalVar as GB
+from oriana.kernel.global_var import GlabalVar as GB
 
 class GitAPI:
     """git コマンドを実行する API"""

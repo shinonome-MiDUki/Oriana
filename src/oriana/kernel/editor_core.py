@@ -17,16 +17,13 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers import PythonLexer
 
-from .jedi_engine import JediCompleter
-from .global_var import GlabalVar as GB
-proj_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if proj_root not in sys.path:
-    sys.path.append(proj_root)
-from api.editor_api import EditorAPI
-from api.config_api import ConfigAPI
-from api.terminal_api import TerminalAPI
-from api.git_api import GitAPI
-from api.plugin_api import PluginAPI
+from oriana.kernel.jedi_engine import JediCompleter
+from oriana.kernel.global_var import GlabalVar as GB
+from oriana.api.editor_api import EditorAPI
+from oriana.api.config_api import ConfigAPI
+from oriana.api.terminal_api import TerminalAPI
+from oriana.api.git_api import GitAPI
+from oriana.api.plugin_api import PluginAPI
 
 class EditorCore:
     def __init__(self, open_path=None):
@@ -37,11 +34,11 @@ class EditorCore:
         GB.PLUGIN_DIR = self.config.get("plugin", {}).get("plugin_dir", str(Path.home() / "Documents/oriana/plugins"))
         if GB.PLUGIN_DIR not in sys.path:
             sys.path.append(GB.PLUGIN_DIR)
-        pkg_list = self.config.get("plugin", {}).get("package", ["package"])
+        pkg_list = self.config.get("plugin", {}).get("package", ["oriana_package"])
         try:
             for pkg in pkg_list:
-                importlib.import_module(pkg)
-            from ccmd.ccmd import CustomCommands
+                importlib.import_module(f"oriana_client.{pkg}")
+            from oriana_client.ccmd.ccmd import CustomCommands
         except Exception as e:
             self.log(f"Plugin load error: {e}")
 
@@ -91,7 +88,7 @@ class EditorCore:
         self.ogit_api = GitAPI(self)
         self.terminal_api = TerminalAPI(self)
         self.plugin_api = PluginAPI(self)
-        self.custom_cmd = CustomCommands(self) if 'CustomCommands' in globals() else None
+        self.custom_cmd = CustomCommands(self) 
         self.api_set = {
             "ope": self.editor_api,
             "cfg": self.config_api,
@@ -200,7 +197,7 @@ class EditorCore:
         if (self.config.get("editor", {}).get("is_record_to_log", False) 
             and (not self.reject_log_set 
                  or sys._getframe(1).f_code.co_name not in self.reject_log_set)):
-            maxlines = self.config["editor"]["is_record_to_log"].get("max_lines", 10000)
+            maxlines = self.config["editor"].get("max_log_lines", 10000)
             log_path = Path(GB.DATA_DIR) / "editor.log"
             if not log_path.exists():
                 with open(log_path, 'w', encoding='utf-8') as f:

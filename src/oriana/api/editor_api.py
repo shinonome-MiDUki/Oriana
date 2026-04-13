@@ -4,10 +4,8 @@ import sys
 
 from prompt_toolkit.application import get_app
 
-proj_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if proj_root not in sys.path:
-    sys.path.append(proj_root)
-from kernel.global_var import GlabalVar as GB
+from oriana.kernel.global_var import GlabalVar as GB
+from oriana.kernel.memory_operation import MemoryOperation
 
 class EditorAPI:
     def __init__(self, app_instance):
@@ -51,13 +49,15 @@ class EditorAPI:
     def focus_edit(self):
         get_app().layout.focus(self.app.editor)
 
-    def quit(self, force=False):
+    def quit(self, force=False, clear_cache=True):
         if not force:
             if GB.EDITING_PATH:
                 self.save()
             else:
                 self.app.log("Please save file before quitting.")
                 return
+        if clear_cache:
+            MemoryOperation.clear_cache()
         get_app().exit()
 
     def copy(self, line_num=None):

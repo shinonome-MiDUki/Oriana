@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from .global_var import GlabalVar as GB
+from oriana.kernel.global_var import GlabalVar as GB
 
 class MakeConfig:
     def __init__(self, config_path):
@@ -68,8 +68,11 @@ class MakeConfig:
         custom_dir = str(input("Enter plugin directory (default /home/Documents/oriana): ")).strip()
         custom_dir = Path(custom_dir) if custom_dir else Path.home() / "Documents/oriana"
         default_config["plugin"]["plugin_dir"] = str(custom_dir)
+        custom_dir = custom_dir / "oriana_client"
         if not custom_dir.exists():
             custom_dir.mkdir(parents=True, exist_ok=True)
+            with open(custom_dir / "__init__.py", "w", encoding="utf-8") as f:
+                f.write("")
             default_pkg = custom_dir / "package"
             if not default_pkg.exists():
                 default_pkg.mkdir() 
@@ -80,7 +83,7 @@ class MakeConfig:
                 custom_cmd.mkdir()
             with open(custom_cmd / "__init__.py", "w", encoding="utf-8") as f:
                 f.write("")
-            with open(GB.BASE_DIR / "_resources" / "init_ccmd.py", "r", encoding="utf-8") as f:
+            with open(Path(GB.BASE_DIR) / "_resources" / "init_ccmd.py", "r", encoding="utf-8") as f:
                 init_ccmd_code = f.read()
             with open(custom_cmd / "ccmd.py", "w", encoding="utf-8") as f:
                 f.write(init_ccmd_code)
