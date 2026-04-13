@@ -3,6 +3,7 @@ import json
 import datetime
 import re
 import sys
+import importlib
 from pathlib import Path
 
 from prompt_toolkit import Application
@@ -25,12 +26,24 @@ from api.editor_api import EditorAPI
 from api.config_api import ConfigAPI
 from api.terminal_api import TerminalAPI
 from api.git_api import GitAPI
+from api.plugin_api import PluginAPI
 
 class EditorCore:
     def __init__(self, open_path=None):
         #self.current_file = None
         self.config = self.load_config()
         self.is_console_mode = False
+        self.reject_log_set = set(self.config.get("editor", {}).get("reject_log", []))
+        GB.PLUGIN_DIR = self.config.get("plugin", {}).get("plugin_dir", str(Path.home() / "Documents/oriana/plugins"))
+        if GB.PLUGIN_DIR not in sys.path:
+            sys.path.append(GB.PLUGIN_DIR)
+        pkg_list = self.config.get("plugin", {}).get("package", ["package"])
+        try:
+            for pkg in pkg_list:
+                importlib.import_module(pkg)
+            from ccmd.ccmd import CustomCommands
+        except Exception as e:
+            self.log(f"Plugin load error: {e}")
 
         lang = self.config.get("editor", {}).get("language", "python")
         completer = self.config.get("completer", {}).get(lang, "jedi")
@@ -77,11 +90,15 @@ class EditorCore:
         self.config_api = ConfigAPI(self)
         self.ogit_api = GitAPI(self)
         self.terminal_api = TerminalAPI(self)
+        self.plugin_api = PluginAPI(self)
+        self.custom_cmd = CustomCommands(self) if 'CustomCommands' in globals() else None
         self.api_set = {
             "ope": self.editor_api,
             "cfg": self.config_api,
             "git": self.ogit_api,
             "shr": self.terminal_api,
+            "plg": self.plugin_api,
+            "ccmd": self.custom_cmd,
             "app": self
         }
 
@@ -129,14 +146,14 @@ class EditorCore:
         )
 
         if self.config.get("editor", {}).get("is_splash", True) and open_path is None:
-            with open(Path(GB.BASE_DIR) / "_data" / "splash.txt", 'r', encoding='utf-8') as f:
+            with open(Path(GB.BASE_DIR) / "_resources" / "splash.txt", 'r', encoding='utf-8') as f:
                 self.editor.text = f.read()
             self.config["editor"]["is_splash"] = False
-            with open(Path(GB.BASE_DIR) / "config.json", 'w', encoding='utf-8') as f:
+            with open(Path(GB.DATA_DIR) / "config.json", 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=4)
 
     def load_config(self):
-        path = Path(GB.BASE_DIR) / "config.json"
+        path = Path(GB.DATA_DIR) / "config.json"
         if path.exists():
             with open(path, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -180,14 +197,25 @@ class EditorCore:
 
     def log(self, msg):
         self.status_bar.text = msg
-        if "editor" in self.config:
-            if self.config.get("is_record_to_log", False):
-                log_path = Path(GB.BASE_DIR) / "editor.log"
-                if not log_path.exists():
+        if (self.config.get("editor", {}).get("is_record_to_log", False) 
+            and (not self.reject_log_set 
+                 or sys._getframe(1).f_code.co_name not in self.reject_log_set)):
+            maxlines = self.config["editor"]["is_record_to_log"].get("max_lines", 10000)
+            log_path = Path(GB.DATA_DIR) / "editor.log"
+            if not log_path.exists():
+                with open(log_path, 'w', encoding='utf-8') as f:
+                    f.write("")
+            maxlines = -1 if maxlines <= 0 else maxlines
+            if maxlines != -1:
+                with open(log_path, 'r', encoding='utf-8') as f:
+                    log_lines = f.readlines()
+                if len(log_lines) > maxlines:
+                    remain_since = len(log_lines) - maxlines
+                    log_lines = log_lines[-remain_since:]   
                     with open(log_path, 'w', encoding='utf-8') as f:
-                        f.write("")
-                with open(log_path, 'a', encoding='utf-8') as f:
-                    f.write(datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + msg + "\n")
+                        f.writelines(log_lines)
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + msg + "\n")
 
     def run(self):
         self.app.run()

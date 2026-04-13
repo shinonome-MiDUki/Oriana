@@ -18,7 +18,7 @@ class ConfigAPI:
         if "editor" not in self.app.config:
             self.app.config["editor"] = {}
         self.app.config["editor"][item] = value
-        with open(os.path.join(GB.BASE_DIR, "config.json"), 'w') as f:
+        with open(os.path.join(GB.DATA_DIR, "config.json"), 'w') as f:
             json.dump(self.app.config, f, indent=4)
         self.app.log(f"Editor config updated: {item} : {value}")
 
@@ -31,7 +31,7 @@ class ConfigAPI:
         else:
             for k, v in theme_dict.items():
                 self.app.config["theme"][k] = v
-        with open(os.path.join(GB.BASE_DIR, "config.json"), 'w') as f:
+        with open(os.path.join(GB.DATA_DIR, "config.json"), 'w') as f:
             json.dump(self.app.config, f, indent=4)
         self.app.log("Editor theme updated.")
 
@@ -40,7 +40,7 @@ class ConfigAPI:
         if "aliases" not in self.app.config:
             self.app.config["aliases"] = {}
         self.app.config["aliases"][alias] = command
-        with open(os.path.join(GB.BASE_DIR, "config.json"), 'w') as f:
+        with open(os.path.join(GB.DATA_DIR, "config.json"), 'w') as f:
             json.dump(self.app.config, f, indent=4)
         self.app.log(f"Alias set: {alias} : {command}")
 
@@ -49,11 +49,26 @@ class ConfigAPI:
         if "shortcuts" not in self.app.config:
             self.app.config["shortcuts"] = {}
         self.app.config["shortcuts"][key_combo] = command
-        with open(os.path.join(GB.BASE_DIR, "config.json"), 'w') as f:
+        with open(os.path.join(GB.DATA_DIR, "config.json"), 'w') as f:
             json.dump(self.app.config, f, indent=4)
         self.app.log(f"Keybind set: {key_combo} : {command}")
 
     def open_config(self):
         """設定ファイルをエディタで開く"""
-        config_path = os.path.join(GB.BASE_DIR, "config.json")
+        config_path = os.path.join(GB.DATA_DIR, "config.json")
         self.app.editor_api.open(config_path)
+
+    def clear_log(self, clear_lines=100):
+        """エディタのログをクリアする"""
+        log_path = os.path.join(GB.DATA_DIR, "editor.log")
+        if os.path.exists(log_path):
+            with open(log_path, 'r', encoding='utf-8') as f:
+                log_lines = f.readlines()
+            if len(log_lines) > clear_lines:
+                remain_since = len(log_lines) - clear_lines
+                log_lines = log_lines[-remain_since:]   
+            with open(log_path, 'w', encoding='utf-8') as f:
+                f.writelines(log_lines)
+            self.app.log("Editor log cleared.")
+        else:
+            self.app.log("No log file found to clear.")
