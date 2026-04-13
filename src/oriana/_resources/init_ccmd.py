@@ -7,6 +7,7 @@ from oriana.api.config_api import ConfigAPI
 from oriana.api.terminal_api import TerminalAPI 
 from oriana.api.git_api import GitAPI 
 from oriana.api.plugin_api import PluginAPI 
+from oriana.api.shelf_api import ShelfAPI
 from oriana.kernel.editor_core import EditorCore
 
 def useapi(*api_to_use):
@@ -15,7 +16,7 @@ def useapi(*api_to_use):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             for api_name in api_to_use:
-                api_available = ["ope", "cfg", "git", "shr", "plg"]
+                api_available = ["ope", "cfg", "git", "shr", "plg", "shf"]
                 if api_name in api_available:
                     kwargs[api_name] = getattr(self, api_name, None)
                 else:
@@ -32,6 +33,7 @@ class CustomCommands:
         self._terminal_api = None
         self._git_api = None
         self._plugin_api = None
+        self._shelf_api = None
 
     @property
     def ope(self):
@@ -62,3 +64,9 @@ class CustomCommands:
         if self._plugin_api is None:
             self._plugin_api = PluginAPI(self.app)
         return self._plugin_api
+    
+    @property
+    def shf(self):
+        if self._shelf_api is None:
+            self._shelf_api = ShelfAPI(self.app)
+        return self._shelf_api

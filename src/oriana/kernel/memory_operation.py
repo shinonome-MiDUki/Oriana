@@ -19,10 +19,3 @@ class MemoryOperation:
             data = pickle.load(f)
         return data
     
-    @classmethod
-    def clear_cache(cls):
-        cache_dir = Path(GB.DATA_DIR) / ".shelf_cache"
-        for file in cache_dir.glob("*.pkl"):
-            file.unlink()
-        with open(cache_dir / "shelf.json", 'w', encoding='utf-8') as f:
-            json.dump({}, f, indent=4)

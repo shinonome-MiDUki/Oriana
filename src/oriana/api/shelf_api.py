@@ -67,3 +67,9 @@ class ShelfAPI:
         else:
             self.app.log(f"Shelf not found: {name}")
 
+    def clear_shelves(self):
+        cache_dir = Path(GB.DATA_DIR) / ".shelf_cache"
+        for file in cache_dir.glob("*.pkl"):
+            file.unlink()
+        with open(cache_dir / "shelf.json", 'w', encoding='utf-8') as f:
+            json.dump({}, f, indent=4)

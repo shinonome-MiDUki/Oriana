@@ -59,6 +59,13 @@ class ConfigAPI:
         """エディタのログをクリアする"""
         log_path = os.path.join(GB.DATA_DIR, "editor.log")
         if os.path.exists(log_path):
+            if clear_lines == 0:
+                self.app.log("Clear nothing")
+                return
+            if clear_lines < 0:
+                os.unlink(log_path)
+                self.app.log("Clear all log")
+                return
             with open(log_path, 'r', encoding='utf-8') as f:
                 log_lines = f.readlines()
             if len(log_lines) > clear_lines:
@@ -69,3 +76,12 @@ class ConfigAPI:
             self.app.log("Editor log cleared.")
         else:
             self.app.log("No log file found to clear.")
+
+    def reset_config(self, confirm=False):
+        if not confirm:
+            self.app.log("Please confirm config reset by passing confirm=True.")
+            return
+        config_path = os.path.join(GB.DATA_DIR, "config.json")
+        if os.path.exists(config_path):
+            os.unlink(config_path)
+        self.app.log("Please restart the editor to apply default config.")

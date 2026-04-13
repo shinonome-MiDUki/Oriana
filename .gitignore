@@ -6,3 +6,8 @@
 **/build/
 **/dist/
 config.json
+dist/
+build/
+*.egg-info/
+editor.log
+/config.json1

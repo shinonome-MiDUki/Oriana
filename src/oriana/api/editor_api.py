@@ -4,6 +4,7 @@ import sys
 
 from prompt_toolkit.application import get_app
 
+from oriana.api.shelf_api import ShelfAPI
 from oriana.kernel.global_var import GlabalVar as GB
 from oriana.kernel.memory_operation import MemoryOperation
 
@@ -57,7 +58,7 @@ class EditorAPI:
                 self.app.log("Please save file before quitting.")
                 return
         if clear_cache:
-            MemoryOperation.clear_cache()
+            ShelfAPI(self.app).clear_shelves()
         get_app().exit()
 
     def copy(self, line_num=None):

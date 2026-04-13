@@ -24,6 +24,7 @@ from oriana.api.config_api import ConfigAPI
 from oriana.api.terminal_api import TerminalAPI
 from oriana.api.git_api import GitAPI
 from oriana.api.plugin_api import PluginAPI
+from oriana.api.shelf_api import ShelfAPI
 
 class EditorCore:
     def __init__(self, open_path=None):
@@ -88,6 +89,7 @@ class EditorCore:
         self.ogit_api = GitAPI(self)
         self.terminal_api = TerminalAPI(self)
         self.plugin_api = PluginAPI(self)
+        self.shelf_api = ShelfAPI(self)
         self.custom_cmd = CustomCommands(self) 
         self.api_set = {
             "ope": self.editor_api,
@@ -95,6 +97,7 @@ class EditorCore:
             "git": self.ogit_api,
             "shr": self.terminal_api,
             "plg": self.plugin_api,
+            "shf": self.shelf_api,
             "ccmd": self.custom_cmd,
             "app": self
         }
