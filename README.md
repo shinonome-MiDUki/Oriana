@@ -44,8 +44,8 @@ python oriana.py
 | `cfg` | `ConfigAPI` | 設定・テーマ・エイリアス管理 |
 | `git` | `GitAPI` | git操作 |
 | `shr` | `TerminalAPI` | シェル・コンソール・コード実行 |
-| `shelf` | `ShelfAPI` | シェルフ・バッファ管理 |
-| `plug` | `PluginAPI` | プラグイン・カスタムコマンド管理 |
+| `shf` | `ShelfAPI` | シェルフ・バッファ管理 |
+| `plg` | `PluginAPI` | プラグイン・カスタムコマンド管理 |
 
 ---
 
@@ -520,13 +520,13 @@ pip を使ってパッケージを管理します。`venv` を指定するとそ
 
 ---
 
-## ShelfAPI (`shelf`)
+## ShelfAPI (`shf`)
 
 シェルフはエディタのバッファを名前付きで退避・復元する仕組みです。複数のファイルを切り替えながら作業する際に使用します。シェルフの状態はディスク上にキャッシュされ、`ope.quit()` 実行時に自動でクリアされます。
 
 ---
 
-### `shelf.shelf(name)`
+### `shf.shelf(name)`
 
 現在のエディタ内容を指定した名前でシェルフに退避します。退避後はエディタがクリアされ、`GB.EDITING_PATH` と `GB.WORKING_SHELF` がリセットされます。
 
@@ -535,12 +535,12 @@ pip を使ってパッケージを管理します。`venv` を指定するとそ
 | `name` | — | シェルフの名前 |
 
 ```
-:shelf.shelf("feature-work")
+:shf.shelf("feature-work")
 ```
 
 ---
 
-### `shelf.switch_shelf(name, discard_current=False)`
+### `shf.switch_shelf(name, discard_current=False)`
 
 指定したシェルフに切り替えます。現在作業中のシェルフがある場合は自動で退避してから切り替えます。`discard_current=True` で現在の内容を退避せずに破棄して切り替えます。
 
@@ -550,13 +550,13 @@ pip を使ってパッケージを管理します。`venv` を指定するとそ
 | `discard_current` | `False` | `True` で現在の内容を破棄して切り替え |
 
 ```
-:shelf.switch_shelf("feature-work")
-:shelf.switch_shelf("hotfix", discard_current=True)
+:shf.switch_shelf("feature-work")
+:shf.switch_shelf("hotfix", discard_current=True)
 ```
 
 ---
 
-### `shelf.unshelf(name, auto_save=True)`
+### `shf.unshelf(name, auto_save=True)`
 
 シェルフを解除します。`auto_save=True`（デフォルト）では、シェルフに紐付いたファイルパスに内容を自動保存してからキャッシュを削除します。ファイルパスが未設定の場合は保存できないためログに通知し処理を中断します。
 
@@ -566,44 +566,44 @@ pip を使ってパッケージを管理します。`venv` を指定するとそ
 | `auto_save` | `True` | `True` で自動保存してからキャッシュを削除 |
 
 ```
-:shelf.unshelf("feature-work")
-:shelf.unshelf("temp", auto_save=False)   # 保存せずに破棄
+:shf.unshelf("feature-work")
+:shf.unshelf("temp", auto_save=False)   # 保存せずに破棄
 ```
 
 ---
 
-### `shelf.clear_shelves()`
+### `shf.clear_shelves()`
 
 全シェルフのキャッシュファイル（`.pkl`）を削除し、`shelf.json` を初期化します。`ope.quit()` 実行時に自動で呼ばれます。
 
 ```
-:shelf.clear_shelves()
+:shf.clear_shelves()
 ```
 
 ---
 
-## PluginAPI (`plug`)
+## PluginAPI (`plg`)
 
 カスタムコマンド（CCMD）の登録・プラグインの管理を担うAPIです。
 
 ---
 
-### `plug.ccmd_template()`
+### `plg.ccmd_template()`
 
 カスタムコマンドのテンプレートコードをエディタに読み込みます。テンプレートを編集後、`plug.reg_ccmd()` で登録します。実行後は `GB.EDITING_PATH` がリセットされます。
 
 ```
-:plug.ccmd_template()
+:plg.ccmd_template()
 ```
 
 ---
 
-### `plug.reg_ccmd()`
+### `plg.reg_ccmd()`
 
 現在のエディタ内容をカスタムコマンドとして登録します。コードの1行目に `@useapi(api1, api2, ...)` 形式でデコレータを記述することで、使用するAPIを宣言できます。登録されたコマンドは `ccmd.py` に追記されます。
 
 ```
-:plug.reg_ccmd()
+:plg.reg_ccmd()
 ```
 
 CCMDの記述例：
@@ -617,7 +617,7 @@ def my_command():
 
 ---
 
-### `plug.set_plugin(name)`
+### `plg.set_plugin(name)`
 
 現在のエディタ内容を指定した名前のプラグインファイルとして保存します。保存先は `PLUGIN_DIR/oriana_client/package/` です。
 
@@ -626,12 +626,12 @@ def my_command():
 | `name` | — | プラグインのファイル名（拡張子なし） |
 
 ```
-:plug.set_plugin("my_plugin")
+:plg.set_plugin("my_plugin")
 ```
 
 ---
 
-### `plug.set_ext_plugin(ext)`
+### `plg.set_ext_plugin(ext)`
 
 外部のプラグインファイルを `PLUGIN_DIR/oriana_client/package/` にコピーして登録します。指定パスが存在しない場合はログにエラーを表示します。
 
@@ -640,12 +640,12 @@ def my_command():
 | `ext` | — | 登録する外部プラグインファイルのパス |
 
 ```
-:plug.set_ext_plugin("/path/to/my_plugin.py")
+:plg.set_ext_plugin("/path/to/my_plugin.py")
 ```
 
 ---
 
-### `plug.set_pkg(ext)`
+### `plg.set_pkg(ext)`
 
 外部のパッケージディレクトリを `PLUGIN_DIR/oriana_client/` にコピーし、`config.json` の `"plugin"."package"` リストに追加します。指定パスが存在しない場合はログにエラーを表示します。
 
@@ -654,5 +654,5 @@ def my_command():
 | `ext` | — | 登録する外部パッケージディレクトリのパス |
 
 ```
-:plug.set_pkg("/path/to/my_package")
+:plg.set_pkg("/path/to/my_package")
 ```
